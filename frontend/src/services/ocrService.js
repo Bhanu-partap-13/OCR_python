@@ -19,6 +19,14 @@ export const processOCR = async (filepath) => {
   return response.data;
 };
 
+export const processOCRWithVision = async (filepath, languageHints = ['ur', 'hi', 'en', 'pa']) => {
+  const response = await axios.post(`${API_URL}/ocr/process-vision`, { 
+    filepath,
+    language_hints: languageHints 
+  });
+  return response.data;
+};
+
 export const translateText = async (text, sourceLang, targetLang) => {
   const response = await axios.post(`${API_URL}/translate/text`, {
     text,
@@ -100,6 +108,74 @@ export const getDistrictProgress = async () => {
   } catch (error) {
     console.error('Failed to fetch district progress:', error);
     return { success: false, data: [] };
+  }
+};
+
+// New endpoints for PDF and AI features
+
+export const generatePDF = async (documentId) => {
+  try {
+    const response = await axios.post(`${API_URL}/ocr/generate-pdf/${documentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to generate PDF:', error);
+    return { success: false, error: error.response?.data?.error || error.message };
+  }
+};
+
+export const downloadPDF = async (documentId) => {
+  try {
+    const response = await axios.get(`${API_URL}/ocr/download-pdf/${documentId}`, {
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `document_${documentId}_ocr.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to download PDF:', error);
+    return { success: false, error: error.response?.data?.error || error.message };
+  }
+};
+
+export const summarizeDocument = async (documentId, summaryType = 'general') => {
+  try {
+    const response = await axios.post(`${API_URL}/ocr/summarize/${documentId}`, {
+      type: summaryType
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to summarize document:', error);
+    return { success: false, error: error.response?.data?.error || error.message };
+  }
+};
+
+export const askQuestionAboutDocument = async (documentId, question) => {
+  try {
+    const response = await axios.post(`${API_URL}/ocr/ask-question/${documentId}`, {
+      question
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to ask question:', error);
+    return { success: false, error: error.response?.data?.error || error.message };
+  }
+};
+
+export const saveDocumentToDatabase = async (documentId, metadata = {}) => {
+  try {
+    const response = await axios.post(`${API_URL}/ocr/save-to-database/${documentId}`, metadata);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to save document:', error);
+    return { success: false, error: error.response?.data?.error || error.message };
   }
 };
 

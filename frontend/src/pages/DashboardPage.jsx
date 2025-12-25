@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { uploadFile, processOCR, translateDocument, getStats, getDocuments, getDistrictProgress } from '../services/ocrService';
+import { uploadFile, processOCR, processOCRWithVision, translateDocument, getStats, getDocuments, getDistrictProgress } from '../services/ocrService';
 import showToast from '../utils/toast';
 import { 
   FileText, 
@@ -60,6 +60,7 @@ const DashboardPage = () => {
   const [ocrResult, setOcrResult] = useState(null);
   const [ocrError, setOcrError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [useGoogleVision, setUseGoogleVision] = useState(false);
   
   // Translation state
   const [translationFile, setTranslationFile] = useState(null);
@@ -237,10 +238,12 @@ const DashboardPage = () => {
       
       setUploading(false);
       setProcessing(true);
-      showToast.loading('Processing OCR...');
+      showToast.loading(useGoogleVision ? 'Processing with Google Vision API...' : 'Processing OCR...');
       
-      // Step 2: Process OCR
-      const ocrResponse = await processOCR(uploadResult.data.filepath);
+      // Step 2: Process OCR (use Google Vision API if selected)
+      const ocrResponse = useGoogleVision 
+        ? await processOCRWithVision(uploadResult.data.filepath)
+        : await processOCR(uploadResult.data.filepath);
       if (ocrResponse.success) {
         setOcrResult({
           text: ocrResponse.data.text,
@@ -602,6 +605,26 @@ const DashboardPage = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Google Vision API Toggle */}
+                <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-[#292929]">Use Google Vision API</span>
+                  </div>
+                  <button
+                    onClick={() => setUseGoogleVision(!useGoogleVision)}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      useGoogleVision ? 'bg-blue-600' : 'bg-neutral-300'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        useGoogleVision ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
 
                 {/* Process Button */}
                 <button 

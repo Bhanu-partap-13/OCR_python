@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage';
 import AuthCallback from './pages/AuthCallback';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import DisputedLandsPage from './pages/DisputedLandsPage';
 import LoadingScreen from './components/LoadingScreen';
 
 // Wrapper component to handle route changes and animations
@@ -45,6 +46,7 @@ const AppContent = () => {
         <Route path="/features/ocr" element={<OCRFeaturePage />} />
         <Route path="/features/translation" element={<TranslationFeaturePage />} />
         <Route path="/features/database" element={<DatabaseFeaturePage />} />
+        <Route path="/disputed-lands" element={<DisputedLandsPage />} />
         <Route path="/registration" element={<FarmerRegistrationPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/about" element={<AboutPage />} />

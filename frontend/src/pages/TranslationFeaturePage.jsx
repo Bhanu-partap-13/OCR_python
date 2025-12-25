@@ -220,7 +220,7 @@ const TranslationFeaturePage = () => {
               <div className="w-16 h-16 rounded-full bg-[#292929] mx-auto mb-4 flex items-center justify-center">
                 <Languages className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-2">10+ Languages</h3>
+              <h3 className="text-xl font-bold mb-2">Multiple Languages</h3>
               <p className="text-[#292929]">
                 Support for Urdu, Hindi, and major Indian regional languages
               </p>

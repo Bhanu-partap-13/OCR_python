@@ -14,7 +14,7 @@ const tourSteps = [
   {
     id: 2,
     title: 'POWERFUL OCR EXTRACTION',
-    description: 'Upload your legacy Urdu and Hindi documents. Our AI-powered OCR extracts text with 95%+ accuracy in seconds.',
+    description: 'Upload your legacy Urdu and Hindi documents. Our AI-powered OCR extracts text accurately in seconds.',
     target: 'features-section',
     position: 'bottom',
     icon: '📄',
