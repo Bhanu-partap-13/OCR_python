@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Target, Eye, Users, Award, Heart, Zap } from 'lucide-react';
 import Footer from '../components/Footer';

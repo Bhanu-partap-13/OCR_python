@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 
 const tourSteps = [
@@ -64,14 +64,21 @@ const GuidedTour = ({ isOpen, onClose, onComplete }) => {
     if (step.target) {
       const element = document.querySelector(`[data-tour="${step.target}"]`);
       if (element) {
-        const rect = element.getBoundingClientRect();
-        setTargetRect(rect);
+        // Use requestAnimationFrame to defer setState and avoid synchronous calls
+        requestAnimationFrame(() => {
+          const rect = element.getBoundingClientRect();
+          setTargetRect(rect);
+        });
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
-        setTargetRect(null);
+        requestAnimationFrame(() => {
+          setTargetRect(null);
+        });
       }
     } else {
-      setTargetRect(null);
+      requestAnimationFrame(() => {
+        setTargetRect(null);
+      });
     }
   }, [currentStep, isOpen]);
 

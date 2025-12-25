@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ScanText, CheckCircle, Zap, Shield, ArrowRight, BookOpen } from 'lucide-react';
