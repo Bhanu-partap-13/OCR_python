@@ -32,13 +32,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: mode === 'development',
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
-        }
-      },
+      minify: 'esbuild',
       rollupOptions: {
         output: {
           manualChunks: {
@@ -55,6 +49,11 @@ export default defineConfig(({ mode }) => {
     // Optimize dependencies
     optimizeDeps: {
       include: ['react', 'react-dom', 'react-router-dom'],
+    },
+    
+    // Remove console in production
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
     }
   }
 })

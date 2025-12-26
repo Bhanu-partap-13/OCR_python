@@ -1,14 +1,16 @@
 import os
 from dotenv import load_dotenv
+import secrets
 
 # Load environment variables from .env file
 load_dotenv()
 
 class Config:
-    # Security
+    # Security - Generate random key for development if not set
     SECRET_KEY = os.environ.get('SECRET_KEY')
     if not SECRET_KEY:
-        raise ValueError("SECRET_KEY environment variable is required for production")
+        SECRET_KEY = secrets.token_hex(32)
+        print("⚠️  Warning: SECRET_KEY not set. Using auto-generated key (set SECRET_KEY in production!)")
     
     # Database (Supabase PostgreSQL)
     # Format: postgresql://USER:PASSWORD@HOST:PORT/DBNAME
