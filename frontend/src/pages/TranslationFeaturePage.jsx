@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Languages, Upload, ArrowRight, FileText, CheckCircle, Loader2, Download } from 'lucide-react';
+import { Languages, Upload, ArrowRight, FileText, CheckCircle, Loader2, Download, Sparkles, Zap, Table, MapPin, User, Calendar, Hash } from 'lucide-react';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
@@ -12,6 +12,9 @@ const TranslationFeaturePage = () => {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0, status: '', percentage: 0 });
+  const abortControllerRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -19,6 +22,7 @@ const TranslationFeaturePage = () => {
       setFile(selectedFile);
       setResult(null);
       setError(null);
+      setProgress({ current: 0, total: 0, status: '', percentage: 0 });
     }
   };
 
@@ -27,24 +31,51 @@ const TranslationFeaturePage = () => {
 
     setUploading(true);
     setError(null);
+    setProgress({ current: 0, total: 0, status: 'Uploading document...', percentage: 5 });
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Use regular endpoint with timeout handling
+      setProgress({ current: 0, total: 1, status: 'Processing with AI...', percentage: 20 });
+      
       const response = await axios.post(`${apiUrl}/api/translate`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 600000, // 10 minutes for large documents
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setProgress(prev => ({ ...prev, status: `Uploading: ${percentCompleted}%`, percentage: Math.min(percentCompleted / 5, 15) }));
+        }
       });
-      setResult(response.data);
+      
+      setProgress({ current: 1, total: 1, status: 'Complete!', percentage: 100 });
+      
+      // Handle response data structure
+      if (response.data.success && response.data.data) {
+        setResult({
+          translated_text: response.data.data.translated_text,
+          original_text: response.data.data.original_text,
+          pages_processed: response.data.data.pages_processed,
+          processing_time_ms: response.data.data.processing_time_ms
+        });
+      } else {
+        setResult(response.data);
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Translation failed. Please try again.');
+      if (err.code === 'ECONNABORTED') {
+        setError('Translation is taking longer than expected. Please try with a smaller document.');
+      } else {
+        setError(err.response?.data?.error || 'Translation failed. Please try again.');
+      }
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadText = () => {
     if (!result) return;
     
     const blob = new Blob([result.translated_text], { type: 'text/plain' });
@@ -54,6 +85,37 @@ const TranslationFeaturePage = () => {
     a.download = 'translated_text.txt';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!file) return;
+    
+    setDownloadingPdf(true);
+    
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('output_format', 'pdf');
+      
+      const response = await axios.post(`${apiUrl}/api/translate`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `translated_document_${Date.now()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError('Failed to download PDF. Please try again.');
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   return (
@@ -129,6 +191,92 @@ const TranslationFeaturePage = () => {
               )}
             </button>
 
+            {/* Processing Animation */}
+            <AnimatePresence>
+              {uploading && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-6 bg-gradient-to-r from-neutral-50 to-neutral-100 rounded-xl p-6 border border-neutral-200"
+                >
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="font-medium text-neutral-700">{progress.status || 'Processing...'}</span>
+                      <span className="text-neutral-500">{progress.percentage}%</span>
+                    </div>
+                    <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-[#292929] to-[#444]"
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${progress.percentage}%` }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Animated Processing Visual */}
+                  <div className="flex items-center justify-center py-8">
+                    <div className="relative">
+                      {/* Outer ring */}
+                      <motion.div
+                        className="w-24 h-24 rounded-full border-4 border-neutral-200"
+                        style={{ borderTopColor: '#292929', borderRightColor: '#292929' }}
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                      />
+                      
+                      {/* Inner content */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          <Languages className="w-8 h-8 text-[#292929]" />
+                        </motion.div>
+                      </div>
+                      
+                      {/* Floating particles */}
+                      {[...Array(6)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute w-2 h-2 bg-[#292929] rounded-full"
+                          style={{
+                            top: '50%',
+                            left: '50%',
+                          }}
+                          animate={{
+                            x: [0, Math.cos(i * 60 * Math.PI / 180) * 50, 0],
+                            y: [0, Math.sin(i * 60 * Math.PI / 180) * 50, 0],
+                            opacity: [0, 1, 0],
+                            scale: [0.5, 1, 0.5],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: i * 0.2,
+                            ease: 'easeInOut',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Status Messages */}
+                  <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <motion.span
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      AI is processing your document in chunks for accuracy...
+                    </motion.span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Error Message */}
             {error && (
               <motion.div
@@ -149,10 +297,95 @@ const TranslationFeaturePage = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="mt-8 space-y-6"
                 >
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-semibold">Translation Complete!</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="font-semibold">Translation Complete!</span>
+                    </div>
+                    {result.processing_time_ms && (
+                      <div className="flex items-center gap-1 text-sm text-neutral-500">
+                        <Zap className="w-4 h-4" />
+                        <span>{(result.processing_time_ms / 1000).toFixed(1)}s</span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Document Summary */}
+                  {result.summary && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-gradient-to-r from-[#292929] to-[#444] text-white rounded-xl p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-5 h-5 text-amber-400" />
+                        <span className="font-semibold">Document Summary</span>
+                      </div>
+                      <p className="text-sm opacity-90">{result.summary}</p>
+                    </motion.div>
+                  )}
+
+                  {/* Extracted Fields Table */}
+                  {result.extracted_fields && Object.keys(result.extracted_fields).length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <h3 className="font-bold mb-3 flex items-center gap-2">
+                        <Table className="w-5 h-5" />
+                        Extracted Information
+                      </h3>
+                      <div className="bg-neutral-50 rounded-xl border border-neutral-200 overflow-hidden">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+                          {Object.entries(result.extracted_fields).map(([key, values], index) => {
+                            const fieldIcons = {
+                              survey_number: <Hash className="w-4 h-4" />,
+                              owner_name: <User className="w-4 h-4" />,
+                              village: <MapPin className="w-4 h-4" />,
+                              tehsil: <MapPin className="w-4 h-4" />,
+                              district: <MapPin className="w-4 h-4" />,
+                              date: <Calendar className="w-4 h-4" />,
+                            };
+                            const fieldLabels = {
+                              survey_number: 'Survey/Khasra No.',
+                              owner_name: 'Owner Name',
+                              father_name: "Father's Name",
+                              village: 'Village',
+                              tehsil: 'Tehsil',
+                              district: 'District',
+                              state: 'State',
+                              area: 'Land Area',
+                              land_type: 'Land Type',
+                              revenue: 'Revenue',
+                              date: 'Date',
+                              registration_number: 'Reg. No.',
+                            };
+                            return (
+                              <div
+                                key={key}
+                                className={`flex items-start gap-3 p-3 ${
+                                  index % 2 === 0 ? 'bg-white' : 'bg-neutral-50'
+                                } border-b border-neutral-100`}
+                              >
+                                <span className="text-neutral-400 mt-0.5">
+                                  {fieldIcons[key] || <FileText className="w-4 h-4" />}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs text-neutral-500 font-medium uppercase tracking-wide">
+                                    {fieldLabels[key] || key.replace(/_/g, ' ')}
+                                  </p>
+                                  <p className="text-sm font-semibold text-neutral-800 truncate">
+                                    {Array.isArray(values) ? values.join(', ') : values}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
 
                   {/* Original Text */}
                   <div>
@@ -160,7 +393,7 @@ const TranslationFeaturePage = () => {
                       <FileText className="w-5 h-5" />
                       Original Text (Urdu/Hindi)
                     </h3>
-                    <div className="bg-neutral-100 rounded-xl p-4 max-h-40 overflow-y-auto">
+                    <div className="bg-neutral-100 rounded-xl p-4 max-h-32 overflow-y-auto">
                       <p className="text-sm text-right font-urdu">{result.original_text || 'Original text extracted'}</p>
                     </div>
                   </div>
@@ -171,19 +404,48 @@ const TranslationFeaturePage = () => {
                       <Languages className="w-5 h-5" />
                       Translated Text (English)
                     </h3>
-                    <div className="bg-neutral-100 rounded-xl p-4 max-h-40 overflow-y-auto">
-                      <p className="text-sm">{result.translated_text || result.translation}</p>
-                    </div>
+                    <motion.div 
+                      className="bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-xl p-4 max-h-60 overflow-y-auto border border-neutral-200"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{result.translated_text || result.translation}</p>
+                    </motion.div>
+                    {result.pages_processed && (
+                      <p className="text-xs text-neutral-500 mt-2">
+                        Processed {result.pages_processed} page(s) • {result.chunks_processed || 1} chunks
+                      </p>
+                    )}
                   </div>
 
-                  {/* Download Button */}
-                  <button
-                    onClick={handleDownload}
-                    className="w-full py-3 border-2 border-[#292929] text-[#292929] rounded-xl font-semibold hover:bg-[#292929] hover:text-white transition-all flex items-center justify-center gap-2"
-                  >
-                    <Download className="w-5 h-5" />
-                    Download Translation
-                  </button>
+                  {/* Download Buttons */}
+                  <div className="flex gap-4">
+                    <button
+                      onClick={handleDownloadText}
+                      className="flex-1 py-3 border-2 border-[#292929] text-[#292929] rounded-xl font-semibold hover:bg-[#292929] hover:text-white transition-all flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-5 h-5" />
+                      Download TXT
+                    </button>
+                    <button
+                      onClick={handleDownloadPdf}
+                      disabled={downloadingPdf}
+                      className="flex-1 py-3 bg-[#292929] text-white rounded-xl font-semibold hover:bg-[#444] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {downloadingPdf ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Generating PDF...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-5 h-5" />
+                          Download PDF
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

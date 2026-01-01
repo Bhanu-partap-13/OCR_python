@@ -9,9 +9,7 @@ import {
   Phone, 
   MapPin, 
   Github, 
-  Twitter, 
   Linkedin, 
-  Instagram,
   ArrowUpRight,
   ScanText,
   Languages,
@@ -147,10 +145,8 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { name: 'GitHub', icon: Github, href: 'https://github.com/agristack' },
-    { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/agristack' },
-    { name: 'LinkedIn', icon: Linkedin, href: 'https://linkedin.com/company/agristack' },
-    { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/agristack' },
+    { name: 'GitHub', icon: Github, href: 'https://github.com/Bhanu-partap-13' },
+    { name: 'LinkedIn', icon: Linkedin, href: 'https://www.linkedin.com/in/bhanu-partap-a49084274/' },
   ];
 
   return (
@@ -310,25 +306,25 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <a 
-                  href="mailto:info@agristack.com" 
+                  href="mailto:partapbhanu516@gmail.com" 
                   className="text-neutral-400 hover:text-white transition-colors flex items-center gap-2"
                 >
                   <Mail className="w-4 h-4" />
-                  info@agristack.com
+                  partapbhanu516@gmail.com
                 </a>
               </li>
               <li>
                 <a 
-                  href="tel:+911234567890" 
+                  href="tel:1234567890" 
                   className="text-neutral-400 hover:text-white transition-colors flex items-center gap-2"
                 >
                   <Phone className="w-4 h-4" />
-                  +91 123 456 7890
+                  1234567890
                 </a>
               </li>
               <li className="flex items-start gap-2 text-neutral-400">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>Mumbai, Maharashtra, India</span>
+                <span>Lovely Professional University, Jalandhar</span>
               </li>
             </ul>
           </div>

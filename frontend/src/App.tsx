@@ -15,6 +15,7 @@ import AuthCallback from './pages/AuthCallback';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import DisputedLandsPage from './pages/DisputedLandsPage';
+import NotFoundPage from './pages/NotFoundPage';
 import LoadingScreen from './components/LoadingScreen';
 
 // Wrapper component to handle route changes and animations
@@ -26,7 +27,7 @@ const AppContent = () => {
     // Simulate initial app loading
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500); // 2.5 seconds loading time
+    }, 4500); // 4.5 seconds loading time to show all languages
 
     return () => clearTimeout(timer);
   }, []);
@@ -51,6 +52,7 @@ const AppContent = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AnimatePresence>
   );

@@ -318,10 +318,15 @@ def get_stats():
 @ocr_bp.route('/documents', methods=['GET'])
 def get_documents():
     """Get list of processed documents"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         status = request.args.get('status')
+        
+        logger.info(f"Fetching documents - page: {page}, per_page: {per_page}, status: {status}")
         
         query = Document.query.order_by(Document.created_at.desc())
         
@@ -330,6 +335,8 @@ def get_documents():
         
         documents = query.limit(per_page).offset((page - 1) * per_page).all()
         total = query.count()
+        
+        logger.info(f"Found {len(documents)} documents out of {total} total")
         
         return jsonify({
             "success": True,
@@ -341,6 +348,9 @@ def get_documents():
             }
         })
     except Exception as e:
+        import traceback
+        logger.error(f"Error fetching documents: {e}")
+        logger.error(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
 @ocr_bp.route('/documents/<doc_id>', methods=['GET'])

@@ -169,8 +169,8 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-bold mb-1">Email</h3>
-                  <a href="mailto:info@agristack.com" className="text-[#292929] hover:text-[#292929] transition-colors">
-                    info@agristack.com
+                  <a href="mailto:partapbhanu516@gmail.com" className="text-[#292929] hover:text-[#292929] transition-colors">
+                    partapbhanu516@gmail.com
                   </a>
                   <p className="text-sm text-neutral-500 mt-1">
                     We'll respond within 24 hours
@@ -184,8 +184,8 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-bold mb-1">Phone</h3>
-                  <a href="tel:+911234567890" className="text-[#292929] hover:text-[#292929] transition-colors">
-                    +91 123 456 7890
+                  <a href="tel:1234567890" className="text-[#292929] hover:text-[#292929] transition-colors">
+                    1234567890
                   </a>
                   <p className="text-sm text-neutral-500 mt-1">
                     Mon-Fri from 9am to 6pm IST
@@ -200,9 +200,9 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-bold mb-1">Office</h3>
                   <p className="text-[#292929]">
-                    AgriStack OCR Headquarters<br />
-                    Mumbai, Maharashtra<br />
-                    India - 400001
+                    Lovely Professional University<br />
+                    Jalandhar, Punjab<br />
+                    India
                   </p>
                 </div>
               </div>
@@ -214,8 +214,8 @@ const ContactPage = () => {
               <p className="text-sm text-[#292929] mb-3">
                 For partnerships, enterprise solutions, or bulk processing inquiries, please email:
               </p>
-              <a href="mailto:enterprise@agristack.com" className="text-[#292929] font-semibold hover:underline">
-                enterprise@agristack.com
+              <a href="mailto:partapbhanu516@gmail.com" className="text-[#292929] font-semibold hover:underline">
+                partapbhanu516@gmail.com
               </a>
             </div>
           </motion.div>

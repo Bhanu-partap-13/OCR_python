@@ -1,131 +1,49 @@
-import React from 'react';
-// eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
-import { BookOpen } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Generate random values outside component to make them truly static
-const lineWidths = Array.from({ length: 8 }, () => 60 + Math.random() * 40);
+// Floating particles for subtle background effect
 const particles = Array.from({ length: 20 }, () => ({
   left: Math.random() * 100,
   top: Math.random() * 100,
-  duration: 3 + Math.random() * 2,
+  duration: 3 + Math.random() * 4,
   delay: Math.random() * 2,
+  size: 2 + Math.random() * 3,
 }));
 
+// Namaste texts in different languages
+const namasteTexts = [
+  { text: 'Namaste', lang: 'english', className: 'font-display' },
+  { text: 'नमस्ते', lang: 'hindi', className: 'font-hindi' },
+  { text: 'نمستے', lang: 'urdu', className: 'font-urdu' },
+];
+
 const LoadingScreen = () => {
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTextIndex((prev) => (prev + 1) % namasteTexts.length);
+    }, 1200);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-white to-blue-50 dark:from-neutral-900 dark:via-black dark:to-blue-950 flex flex-col items-center justify-center z-50">
-      {/* Book Animation */}
-      <div className="relative w-64 h-80" style={{ perspective: '1200px' }}>
-        {/* Book Cover */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-amber-800 to-amber-900 rounded-r-2xl shadow-2xl"
-          style={{
-            transformStyle: 'preserve-3d',
-            transformOrigin: 'left center',
-          }}
-          animate={{
-            rotateY: [0, -180, 0],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          {/* Front Cover */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-700 to-amber-900 rounded-r-2xl flex flex-col items-center justify-center p-8 backface-hidden">
-            <BookOpen className="w-16 h-16 text-amber-100 mb-4" />
-            <div className="text-amber-100 text-xl font-serif text-center">
-              Land Records
-            </div>
-            <div className="text-amber-200 text-sm mt-2">Digital Archive</div>
-          </div>
-          
-          {/* Back Cover (visible when rotated) */}
-          <div 
-            className="absolute inset-0 bg-gradient-to-br from-amber-800 to-amber-950 rounded-r-2xl flex items-center justify-center"
-            style={{
-              transform: 'rotateY(180deg)',
-              backfaceVisibility: 'hidden',
-            }}
-          >
-            <div className="text-amber-100 space-y-2 px-8">
-              {lineWidths.map((width, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{
-                    delay: i * 0.1,
-                    duration: 0.3,
-                    repeat: Infinity,
-                    repeatDelay: 1.5,
-                  }}
-                  className="h-1.5 bg-amber-200/30 rounded"
-                  style={{ 
-                    width: `${width}%`,
-                    transformOrigin: 'left',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Book Spine Shadow */}
-        <div className="absolute left-0 top-0 bottom-0 w-2 bg-amber-950 rounded-l-sm -z-10"></div>
-      </div>
-
-      {/* Loading Text */}
-      <motion.div 
-        className="mt-12 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        <h2 className="text-2xl font-serif text-amber-900 dark:text-amber-100 tracking-wide mb-2">
-          Loading AgriStack
-        </h2>
-        <motion.div 
-          className="flex items-center justify-center gap-1"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          {[...Array(3)].map((_, i) => (
-            <motion.span
-              key={i}
-              className="w-2 h-2 bg-amber-600 dark:bg-amber-400 rounded-full"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                delay: i * 0.2,
-              }}
-            />
-          ))}
-        </motion.div>
-        <p className="text-sm text-amber-700 dark:text-amber-300 mt-4">
-          Digitizing your records...
-        </p>
-      </motion.div>
-
-      {/* Floating particles */}
+    <div className="fixed inset-0 bg-[#0a0a0a] flex flex-col items-center justify-center z-50 overflow-hidden">
+      {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {particles.map((particle, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-amber-400/30 rounded-full"
+            className="absolute rounded-full bg-white/20"
             style={{
               left: `${particle.left}%`,
               top: `${particle.top}%`,
+              width: particle.size,
+              height: particle.size,
             }}
             animate={{
-              y: [0, -30, 0],
-              opacity: [0, 1, 0],
+              y: [0, -40, 0],
+              opacity: [0.1, 0.3, 0.1],
             }}
             transition={{
               duration: particle.duration,
@@ -135,6 +53,75 @@ const LoadingScreen = () => {
           />
         ))}
       </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center">
+        {/* Namaste Text Animation */}
+        <div className="relative h-40 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentTextIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="text-center"
+            >
+              <h1
+                className={`text-7xl md:text-8xl lg:text-9xl text-white font-bold ${namasteTexts[currentTextIndex].className}`}
+                style={{
+                  direction: namasteTexts[currentTextIndex].lang === 'urdu' ? 'rtl' : 'ltr',
+                }}
+              >
+                {namasteTexts[currentTextIndex].text}
+              </h1>
+              <motion.p
+                className="text-white/40 text-xs mt-4 tracking-[0.3em] uppercase"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                {namasteTexts[currentTextIndex].lang}
+              </motion.p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Loading Indicator */}
+        <motion.div
+          className="mt-16 flex items-center gap-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <motion.div className="flex gap-1.5">
+            {[...Array(3)].map((_, i) => (
+              <motion.span
+                key={i}
+                className="w-2 h-2 bg-white/60 rounded-full"
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.4, 1, 0.4],
+                }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  delay: i * 0.2,
+                }}
+              />
+            ))}
+          </motion.div>
+          <span className="text-white/50 text-sm tracking-wider font-light">
+            Loading AgriStack
+          </span>
+        </motion.div>
+      </div>
+
+      {/* Minimal corner accents */}
+      <div className="absolute top-8 left-8 w-8 h-8 border-l border-t border-white/10" />
+      <div className="absolute top-8 right-8 w-8 h-8 border-r border-t border-white/10" />
+      <div className="absolute bottom-8 left-8 w-8 h-8 border-l border-b border-white/10" />
+      <div className="absolute bottom-8 right-8 w-8 h-8 border-r border-b border-white/10" />
     </div>
   );
 };
