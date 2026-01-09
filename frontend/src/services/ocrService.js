@@ -28,6 +28,29 @@ export const processOCRWithVision = async (filepath, languageHints = ['ur', 'hi'
   return response.data;
 };
 
+// Process OCR with LLMWhisperer (Primary OCR engine - high quality)
+export const processOCRWithLLMWhisperer = async (filepath, options = {}) => {
+  const response = await axios.post(`${API_URL}/ocr/process-llmwhisperer`, { 
+    filepath,
+    processing_mode: options.processingMode || 'text',
+    force_text_processing: options.forceTextProcessing !== false
+  }, {
+    timeout: 120000 // 2 minute timeout for complex documents
+  });
+  return response.data;
+};
+
+// Get LLMWhisperer usage info
+export const getLLMWhispererUsage = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/ocr/llmwhisperer-usage`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch LLMWhisperer usage:', error);
+    return { success: false, error: 'Failed to fetch usage info' };
+  }
+};
+
 export const translateText = async (text, sourceLang, targetLang) => {
   const response = await axios.post(`${API_URL}/translate/text`, {
     text,

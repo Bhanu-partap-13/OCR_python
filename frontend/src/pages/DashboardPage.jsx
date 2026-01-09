@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { uploadFile, processOCR, processOCRWithVision, translateDocument, getStats, getDocuments, getDistrictProgress } from '../services/ocrService';
+import { uploadFile, processOCRWithLLMWhisperer, translateDocument, getStats, getDocuments, getDistrictProgress } from '../services/ocrService';
 import showToast from '../utils/toast';
 import { 
   FileText, 
@@ -17,7 +17,6 @@ import {
   BarChart3,
   Clock,
   TrendingUp,
-  Sparkles,
   Users,
   MapPin,
   FileCheck,
@@ -60,14 +59,11 @@ const DashboardPage = () => {
   const [ocrResult, setOcrResult] = useState(null);
   const [ocrError, setOcrError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
-  const [useGoogleVision, setUseGoogleVision] = useState(false);
   
   // Translation state
   const [translationFile, setTranslationFile] = useState(null);
   const [translating, setTranslating] = useState(false);
   const [translationResult, setTranslationResult] = useState(null);
-  const [sourceLang, setSourceLang] = useState('ur');
-  const [targetLang, setTargetLang] = useState('en');
   const [translationError, setTranslationError] = useState(null);
   const [translationProgress, setTranslationProgress] = useState({ current: 0, total: 0 });
   const [dragActiveTranslation, setDragActiveTranslation] = useState(false);
@@ -238,12 +234,10 @@ const DashboardPage = () => {
       
       setUploading(false);
       setProcessing(true);
-      showToast.loading(useGoogleVision ? 'Processing with Google Vision API...' : 'Processing OCR...');
+      showToast.loading('Processing with LLMWhisperer OCR...');
       
-      // Step 2: Process OCR (use Google Vision API if selected)
-      const ocrResponse = useGoogleVision 
-        ? await processOCRWithVision(uploadResult.data.filepath)
-        : await processOCR(uploadResult.data.filepath);
+      // Step 2: Process OCR with LLMWhisperer
+      const ocrResponse = await processOCRWithLLMWhisperer(uploadResult.data.filepath);
       if (ocrResponse.success) {
         setOcrResult({
           text: ocrResponse.data.text,
@@ -329,8 +323,8 @@ const DashboardPage = () => {
     setTranslationProgress({ current: 0, total: 0 });
 
     try {
-      showToast.loading('Processing PDF document...');
-      const response = await translateDocument(translationFile, sourceLang, targetLang);
+      showToast.loading('Translating Urdu to English...');
+      const response = await translateDocument(translationFile, 'ur', 'en');
       
       if (response.success) {
         setTranslationResult(response.data);
@@ -383,14 +377,6 @@ const DashboardPage = () => {
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
-  const languages = [
-    { code: 'ur', name: 'Urdu' },
-    { code: 'hi', name: 'Hindi' },
-    { code: 'en', name: 'English' },
-    { code: 'pa', name: 'Punjabi' },
-    { code: 'ks', name: 'Kashmiri' },
-  ];
-
   return (
     <div className="min-h-screen bg-white text-[#292929]">
       {/* Background Grid */}
@@ -405,7 +391,7 @@ const DashboardPage = () => {
               className="w-10 h-10 rounded-xl bg-[#292929] flex items-center justify-center hover:bg-[#404040] transition-colors"
               title="Go to Home"
             >
-              <Sparkles className="w-6 h-6 text-white" />
+              <ScanLine className="w-6 h-6 text-white" />
             </button>
             <div>
               <h1 className="text-xl font-bold text-[#292929]">AgriStack OCR</h1>
@@ -606,24 +592,13 @@ const DashboardPage = () => {
                   </div>
                 )}
 
-                {/* Google Vision API Toggle */}
-                <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                {/* LLMWhisperer OCR Engine Info */}
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-[#292929]">Use Google Vision API</span>
+                    <ScanLine className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-[#292929]">LLMWhisperer OCR Engine</span>
                   </div>
-                  <button
-                    onClick={() => setUseGoogleVision(!useGoogleVision)}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${
-                      useGoogleVision ? 'bg-blue-600' : 'bg-neutral-300'
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                        useGoogleVision ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Active</span>
                 </div>
 
                 {/* Process Button */}
@@ -753,37 +728,22 @@ const DashboardPage = () => {
               <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6">
                 <h2 className="text-lg font-semibold text-[#292929] mb-4 flex items-center gap-2">
                   <Languages className="w-5 h-5" />
-                  PDF Document Translation
+                  Urdu to English Translation
                 </h2>
                 <p className="text-sm text-neutral-500 mb-6">
-                  Upload PDF land records (100+ pages supported) for translation with domain-specific terminology.
+                  Upload PDF land records (100+ pages supported) for Urdu to English translation with domain-specific terminology.
                 </p>
 
-                {/* Language Selection */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">From</label>
-                    <select
-                      value={sourceLang}
-                      onChange={(e) => setSourceLang(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white focus:border-[#292929] focus:ring-1 focus:ring-[#292929] outline-none"
-                    >
-                      {languages.map((lang) => (
-                        <option key={lang.code} value={lang.code}>{lang.name}</option>
-                      ))}
-                    </select>
+                {/* Fixed Language Display */}
+                <div className="flex items-center justify-center gap-4 mb-4 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+                  <div className="text-center">
+                    <span className="text-xs text-neutral-500">From</span>
+                    <p className="font-semibold text-[#292929]">اردو (Urdu)</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">To</label>
-                    <select
-                      value={targetLang}
-                      onChange={(e) => setTargetLang(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white focus:border-[#292929] focus:ring-1 focus:ring-[#292929] outline-none"
-                    >
-                      {languages.map((lang) => (
-                        <option key={lang.code} value={lang.code}>{lang.name}</option>
-                      ))}
-                    </select>
+                  <ArrowRight className="w-5 h-5 text-neutral-400" />
+                  <div className="text-center">
+                    <span className="text-xs text-neutral-500">To</span>
+                    <p className="font-semibold text-[#292929]">English</p>
                   </div>
                 </div>
 
@@ -896,14 +856,14 @@ const DashboardPage = () => {
                           {translationResult.pages_processed || 1} page(s)
                         </span>
                         <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
-                          {languages.find(l => l.code === targetLang)?.name}
+                          English
                         </span>
                       </div>
                     </div>
                     <div className="p-4">
                       <div 
                         className="bg-neutral-50 rounded-xl p-4 font-serif text-base leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto border border-neutral-200"
-                        dir={targetLang === 'ur' || targetLang === 'ks' ? 'rtl' : 'ltr'}
+                        dir="ltr"
                       >
                         {translationResult.translated_text || translationResult.translated}
                       </div>
@@ -1158,7 +1118,7 @@ const DashboardPage = () => {
               {/* AgriStack Pipeline */}
               <div className="bg-[#292929] rounded-2xl p-6 text-white">
                 <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
+                  <Database className="w-5 h-5" />
                   AgriStack Pipeline Status
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

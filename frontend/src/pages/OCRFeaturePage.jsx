@@ -26,7 +26,7 @@ const OCRFeaturePage = () => {
               Advanced OCR Technology
             </h1>
             <p className="text-xl text-[#292929] max-w-3xl mx-auto">
-              Extract text from scanned Urdu and Hindi documents with industry-leading accuracy using Google Vision API
+              Extract text from scanned Urdu and Hindi documents with industry-leading accuracy using LLMWhisperer OCR API
             </p>
           </motion.div>
         </div>
@@ -45,7 +45,7 @@ const OCRFeaturePage = () => {
               <CheckCircle className="w-12 h-12 text-[#292929] mb-4" />
               <h3 className="text-2xl font-bold mb-4">High Accuracy</h3>
               <p className="text-[#292929]">
-                Our Google Vision API-powered OCR engine delivers precise text extraction on complex Urdu and Hindi scripts, handling both handwritten documents and various scan qualities.
+                Our LLMWhisperer-powered OCR engine delivers precise text extraction on complex Urdu and Hindi scripts, handling both handwritten documents and various scan qualities.
               </p>
             </motion.div>
 
@@ -126,7 +126,7 @@ const OCRFeaturePage = () => {
               <div>
                 <h3 className="text-xl font-bold mb-2">AI Processing</h3>
                 <p className="text-[#292929]">
-                  Google Vision API analyzes the document, identifies text regions, and extracts content with confidence scores.
+                  LLMWhisperer OCR analyzes the document, identifies text regions, and extracts content with high accuracy.
                 </p>
               </div>
             </motion.div>
