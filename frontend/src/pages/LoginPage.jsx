@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { supabase, isAuthEnabled } from '../supabaseClient';
 import showToast from '../utils/toast';
 import { Loader2, Mail, Lock, ArrowLeft, Shield, Zap, Globe, FileText } from 'lucide-react';
 
@@ -115,6 +115,13 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = async () => {
+    // Check if Supabase is properly configured
+    if (!isAuthEnabled) {
+      setError('Authentication is not configured. Please contact the administrator.');
+      showToast.error('Authentication service is not available.');
+      return;
+    }
+
     setGoogleLoading(true);
     setError(null);
 

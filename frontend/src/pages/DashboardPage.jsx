@@ -529,188 +529,35 @@ const DashboardPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              className="flex items-center justify-center"
             >
-              {/* Upload Section */}
-              <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6">
-                <h2 className="text-lg font-semibold text-[#292929] mb-4 flex items-center gap-2">
-                  <ScanLine className="w-5 h-5" />
-                  OCR Document Scanner
-                </h2>
-                <p className="text-sm text-neutral-500 mb-6">
-                  Upload a land record document (Jamabandi, Fard, Mutation) to extract text using AI-powered OCR.
+              {/* Coming Soon Section */}
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-12 text-center max-w-lg w-full">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center">
+                  <ScanLine className="w-12 h-12 text-amber-600" />
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full mb-4">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span className="text-sm font-semibold text-amber-700">Coming Soon</span>
+                </div>
+                <h3 className="text-2xl font-bold text-[#292929] mb-3">OCR Document Scanner</h3>
+                <p className="text-neutral-500 mb-6">
+                  Our AI-powered OCR system for extracting text from land record documents is currently under development. 
+                  Stay tuned for this exciting feature!
                 </p>
-
-                {/* Drop Zone */}
-                <div
-                  className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer mb-4 ${
-                    dragActive 
-                      ? "border-[#292929] bg-neutral-50" 
-                      : "border-neutral-300 hover:border-neutral-400"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input 
-                    ref={fileInputRef}
-                    type="file" 
-                    onChange={handleFileChange} 
-                    className="hidden" 
-                    accept="image/*,.pdf"
-                  />
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="h-14 w-14 rounded-full bg-neutral-100 flex items-center justify-center">
-                      <Upload className="w-7 h-7 text-[#292929]" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-[#292929]">Click to upload or drag and drop</p>
-                      <p className="text-sm text-neutral-500 mt-1">PNG, JPG, JPEG, or PDF (max. 10MB)</p>
-                    </div>
+                <div className="flex flex-wrap justify-center gap-2 mb-6">
+                  {['Urdu', 'Hindi', 'English', 'Kashmiri'].map((lang) => (
+                    <span key={lang} className="px-3 py-1 bg-neutral-100 text-neutral-500 text-xs rounded-full">{lang}</span>
+                  ))}
+                </div>
+                <div className="space-y-2 text-sm text-neutral-500">
+                  <div className="flex items-center justify-center gap-2">
+                    <Zap className="w-4 h-4" /> Fast processing with LLMWhisperer
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <Shield className="w-4 h-4" /> Secure & encrypted processing
                   </div>
                 </div>
-
-                {/* Selected File */}
-                {selectedFile && (
-                  <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-200 mb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="h-10 w-10 rounded-lg bg-[#292929] flex items-center justify-center flex-shrink-0">
-                          <FileIcon className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-[#292929] truncate">{selectedFile.name}</p>
-                          <p className="text-xs text-neutral-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                      </div>
-                      <button onClick={clearFile} className="p-2 hover:bg-neutral-200 rounded-full transition-colors" disabled={uploading || processing}>
-                        <X className="w-5 h-5 text-neutral-500" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* LLMWhisperer OCR Engine Info */}
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2">
-                    <ScanLine className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-[#292929]">LLMWhisperer OCR Engine</span>
-                  </div>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Active</span>
-                </div>
-
-                {/* Process Button */}
-                <button 
-                  onClick={handleOCRProcess} 
-                  disabled={!selectedFile || uploading || processing}
-                  className="w-full py-3 px-4 bg-[#292929] hover:bg-[#404040] text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {uploading ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</>
-                  ) : processing ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Processing OCR...</>
-                  ) : (
-                    <><ScanLine className="w-5 h-5" /> Start OCR Processing</>
-                  )}
-                </button>
-
-                {/* Supported Info */}
-                <div className="mt-6 pt-6 border-t border-neutral-200">
-                  <h3 className="text-sm font-semibold text-[#292929] mb-3">Supported Languages</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['Urdu', 'Hindi', 'English', 'Kashmiri'].map((lang) => (
-                      <span key={lang} className="px-3 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full">{lang}</span>
-                    ))}
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-neutral-600">
-                      <Zap className="w-4 h-4" /> Fast processing (~3 seconds)
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-neutral-600">
-                      <Shield className="w-4 h-4" /> Secure & encrypted
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Results Section */}
-              <div className="space-y-6">
-                {/* Error */}
-                {ocrError && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-start gap-4">
-                    <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-red-900">Error</p>
-                      <p className="text-sm text-red-700 mt-1">{ocrError}</p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* OCR Result */}
-                {ocrResult && (
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
-                    <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50">
-                      <h2 className="font-semibold text-[#292929] flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        Extracted Text
-                      </h2>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
-                          {ocrResult.language || 'Detected'}
-                        </span>
-                        {ocrResult.confidence && (
-                          <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">
-                            {ocrResult.confidence}% confidence
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="bg-neutral-50 rounded-xl p-4 font-mono text-sm whitespace-pre-wrap max-h-64 overflow-y-auto border border-neutral-200 text-right" dir="rtl">
-                        {ocrResult.text}
-                      </div>
-                      <div className="flex gap-2 mt-4">
-                        <button
-                          onClick={() => copyToClipboard(ocrResult.text)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition-colors"
-                        >
-                          <Copy className="w-4 h-4" />
-                          {copied ? 'Copied!' : 'Copy Text'}
-                        </button>
-                        <button
-                          onClick={useOcrForTranslation}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#292929] text-white hover:bg-[#404040] transition-colors"
-                        >
-                          <Languages className="w-4 h-4" />
-                          Translate
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    {ocrResult.processingTime && (
-                      <div className="px-4 pb-4">
-                        <p className="text-xs text-neutral-500">
-                          Processed in {ocrResult.processingTime}ms • Document ID: {ocrResult.documentId}
-                        </p>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-
-                {/* Empty State */}
-                {!ocrResult && !ocrError && !processing && !uploading && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-12 text-center">
-                    <div className="w-20 h-20 mx-auto mb-6 bg-neutral-100 rounded-2xl flex items-center justify-center">
-                      <ScanLine className="w-10 h-10 text-neutral-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-[#292929] mb-2">Ready to Scan</h3>
-                    <p className="text-neutral-500 max-w-md mx-auto">
-                      Upload a land record document to extract text using our AI-powered OCR system.
-                    </p>
-                  </div>
-                )}
               </div>
             </motion.div>
           )}
