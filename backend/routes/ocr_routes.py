@@ -6,9 +6,13 @@ from datetime import datetime, date
 from document.upload_handler import save_file
 from ocr.lightweight_pipeline import ocr_pipeline
 from ocr.google_vision_ocr import process_with_vision_api
+from ocr.llmwhisperer_ocr import process_with_llmwhisperer, get_llmwhisperer
 from extensions import db
 from models import Document, Farmer, LandParcel, ProcessingStats
 from sqlalchemy import func
+import logging
+
+logger = logging.getLogger(__name__)
 
 ocr_bp = Blueprint('ocr', __name__)
 
@@ -220,6 +224,145 @@ def process_ocr_vision():
             db.session.commit()
         except:
             pass
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ocr_bp.route('/process-llmwhisperer', methods=['POST'])
+def process_ocr_llmwhisperer():
+    """Process OCR using LLMWhisperer API - High quality OCR for complex documents"""
+    data = request.get_json()
+    filepath = data.get('filepath')
+    processing_mode = data.get('processing_mode', 'text')  # text, forms, or structured
+    force_text_processing = data.get('force_text_processing', True)
+    
+    logger.info(f"LLMWhisperer OCR request - filepath: {filepath}, mode: {processing_mode}")
+    
+    if not filepath:
+        logger.error("No filepath provided in request")
+        return jsonify({"success": False, "error": "No filepath provided"}), 400
+    
+    # Check if API key is configured
+    api_key = os.environ.get('LLMWHISPERER_API_KEY')
+    if not api_key:
+        logger.error("LLMWHISPERER_API_KEY not configured")
+        return jsonify({
+            "success": False, 
+            "error": "LLMWhisperer API Key not configured",
+            "hint": "Add LLMWHISPERER_API_KEY to your .env file and restart the server"
+        }), 400
+        
+    try:
+        start_time = time.time()
+        
+        # Check if file exists
+        if not os.path.exists(filepath):
+            logger.error(f"File not found: {filepath}")
+            return jsonify({"success": False, "error": f"File not found: {filepath}"}), 400
+        
+        # Get file size
+        file_size = os.path.getsize(filepath)
+        logger.info(f"Processing file with LLMWhisperer - size: {file_size} bytes")
+        
+        # Process with LLMWhisperer
+        result = process_with_llmwhisperer(
+            filepath, 
+            processing_mode=processing_mode,
+            force_text_processing=force_text_processing
+        )
+        
+        processing_time_ms = int((time.time() - start_time) * 1000)
+        
+        if not result.get('success', False):
+            raise Exception(result.get('error', 'LLMWhisperer processing failed'))
+        
+        # Detect language from result
+        detected_lang = result.get('detected_language', 'unknown')
+        extracted_text = result.get('text', '')
+        confidence = result.get('confidence', 0)
+        
+        # Create document record
+        doc = Document(
+            filename=os.path.basename(filepath),
+            original_path=filepath,
+            file_type=os.path.splitext(filepath)[1][1:].lower(),
+            file_size_kb=file_size // 1024,
+            ocr_text=extracted_text,
+            detected_language=detected_lang,
+            ocr_confidence=confidence,
+            processing_status='processed',
+            processing_time_ms=processing_time_ms,
+            processed_at=datetime.utcnow()
+        )
+        db.session.add(doc)
+        
+        # Update daily stats
+        today = date.today()
+        stats = ProcessingStats.query.filter_by(date=today).first()
+        if not stats:
+            stats = ProcessingStats(date=today)
+            db.session.add(stats)
+        
+        stats.documents_processed += 1
+        stats.total_processing_time_ms += processing_time_ms
+        
+        if detected_lang in ['ur', 'urd', 'urdu']:
+            stats.urdu_count += 1
+        elif detected_lang in ['hi', 'hin', 'hindi']:
+            stats.hindi_count += 1
+        else:
+            stats.english_count += 1
+            
+        db.session.commit()
+        
+        logger.info(f"LLMWhisperer processing complete - {len(extracted_text)} chars, {processing_time_ms}ms")
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "text": extracted_text,
+                "confidence": confidence,
+                "detected_language": detected_lang,
+                "document_id": doc.id,
+                "processing_time_ms": processing_time_ms,
+                "ocr_engine": "llmwhisperer",
+                "pages_processed": result.get('pages', 1),
+                "usage_info": result.get('usage_info', {})
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"LLMWhisperer processing error: {str(e)}")
+        # Log failed processing
+        try:
+            today = date.today()
+            stats = ProcessingStats.query.filter_by(date=today).first()
+            if not stats:
+                stats = ProcessingStats(date=today)
+                db.session.add(stats)
+            stats.documents_failed += 1
+            db.session.commit()
+        except:
+            pass
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@ocr_bp.route('/llmwhisperer-usage', methods=['GET'])
+def get_llmwhisperer_usage():
+    """Get LLMWhisperer API usage information"""
+    try:
+        llm = get_llmwhisperer()
+        if not llm:
+            return jsonify({
+                "success": False, 
+                "error": "LLMWhisperer not configured"
+            }), 400
+        
+        usage = llm.get_usage_info()
+        return jsonify({
+            "success": True,
+            "data": usage
+        })
+    except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 
