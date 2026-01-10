@@ -2,6 +2,8 @@
 
 *Deployement:* https://ocr-python.vercel.app/
 
+Trnaltion feature: https://huggingface.co/spaces/iondfngdjkg/pdf-tranlator
+
 A comprehensive platform for digitizing land records, managing disputed lands, and resolving partition-era ownership issues across India and Pakistan. Built with React, Flask, and powered by Google Vision AI.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
